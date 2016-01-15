@@ -5,9 +5,16 @@
 
 <dom-module id="iris-client-form">
   <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
     <div>
       <h2>{{currentField.description}}</h2>
-      <input label$="{{currentField.placeholder}}" value="{{value::input}}"></input>
+      <input id="input" type="text"></input>
     </div>
   </template>
 
@@ -81,7 +88,7 @@
           this.set('currentFieldNumber', current);
           this.set('currentFieldName', keys[this.currentFieldNumber]);
           this.set('currentField', this.fieldsModel[this.currentFieldName]);
-          this.value = this.filledFields[this.currentFieldName];
+          this.$.input.value = this.filledFields[this.currentFieldName] || '';
 
           this.checkBorders();
         },
@@ -92,6 +99,7 @@
           return true;
         },
         storeValue() {
+          this.value = this.$.input.value;
           if (this.currentFieldName && this.value) {
             this.set('filledFields.' + this.currentFieldName, this.value)
           }
