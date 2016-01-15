@@ -1,10 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-buttnon/paper-buttnon.html">
+<link rel="import" href="../../bower_components/iris-polymer-importer/iris-importer.html">
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
 <dom-module id="iris-client-form">
   <template>
-    <paper-button>Назад</paper-buttnon>
-      <paper-button>Дальше</paper-buttnon>
+    <div>
+      <h2>{{currentField.description}}</h2>
+      <input label$="{{currentField.placeholder}}" value="{{value::input}}"></input>
+    </div>
   </template>
 
   <script>
@@ -12,8 +16,90 @@
     (function() {
       Polymer({
         is: 'iris-client-form',
-        properties: {},
-        ready() {}
+        properties: {
+          filledFields: {
+            type: Object,
+            notify: true,
+            value: {}
+          },
+          fieldsModel: {
+            type: Object,
+            observer: '_fieldsModelChanged'
+          },
+          currentFieldName: {
+            type: String,
+            notify: true
+          },
+          currentFieldNumber: {
+            type: Number,
+            notify: true,
+            value: 0
+          },
+          isFinished: {
+            type: Boolean,
+            notify: true,
+            value: false
+          },
+          isFirst: {
+            type: Boolean,
+            notify: true,
+            value: true
+          }
+        },
+        _fieldsModelChanged() {
+
+        },
+        ready() {
+          this.fieldsModel = {
+            'name': {
+              type: 'input',
+              placeholder: 'Имя',
+              description: 'Введите имя сюда'
+            },
+            'lastname': {
+              type: 'input',
+              placeholder: 'Фамилия',
+              description: 'Давай дальше'
+            }
+          };
+          this.reset();
+        },
+        next() {
+          this.storeValue();
+          if (this.isFinished) return false;
+          this.setParams(this.currentFieldNumber + 1);
+
+          return true;
+        },
+        checkBorders() {
+          let keys = _.keys(this.fieldsModel);
+          this.set('isFinished', this.currentFieldNumber === keys.length - 1);
+          this.set('isFirst', this.currentFieldNumber === 0);
+        },
+        setParams(current) {
+          let keys = _.keys(this.fieldsModel);
+          this.set('currentFieldNumber', current);
+          this.set('currentFieldName', keys[this.currentFieldNumber]);
+          this.set('currentField', this.fieldsModel[this.currentFieldName]);
+          this.value = this.filledFields[this.currentFieldName];
+
+          this.checkBorders();
+        },
+        previous() {
+          this.storeValue();
+          if (this.isFirst) return false;
+          this.setParams(this.currentFieldNumber - 1);
+          return true;
+        },
+        storeValue() {
+          if (this.currentFieldName && this.value) {
+            this.set('filledFields.' + this.currentFieldName, this.value)
+          }
+        },
+        reset() {
+          this.filledFields = {};
+          this.setParams(0);
+        }
       });
     })();
   </script>
