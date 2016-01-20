@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/iris-polymer-importer/iris-importer.html">
 
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iris-polymer-screen-lock/iris-screen-lock.html">
 
 <dom-module id="iris-client-form">
   <template>
@@ -12,10 +13,8 @@
       }
     </style>
 
-    <div>
-      <h2>{{currentField.description}}</h2>
-      <input id="input" type="text"></input>
-    </div>
+    <paper-input label$="[[currentField.description]]" value="{{text}}"></paper-input>
+    <iris-screen-lock id="locker"></iris-screen-lock>
   </template>
 
   <script>
@@ -24,6 +23,10 @@
       Polymer({
         is: 'iris-client-form',
         properties: {
+          text: {
+            type: String,
+            notify: true
+          },
           filledFields: {
             type: Object,
             notify: true,
@@ -42,6 +45,10 @@
             notify: true,
             value: 0
           },
+          currentField: {
+            type: Object,
+            notify: true
+          },
           isFinished: {
             type: Boolean,
             notify: true,
@@ -54,29 +61,41 @@
           }
         },
         _fieldsModelChanged() {
-
-        },
-        ready() {
-          this.fieldsModel = {
-            'name': {
-              type: 'input',
-              placeholder: 'Имя',
-              description: 'Введите имя сюда'
-            },
-            'lastname': {
-              type: 'input',
-              placeholder: 'Фамилия',
-              description: 'Давай дальше'
-            }
-          };
           this.reset();
+        },
+        validate() {
+
+          let validate;
+
+          if (this.currentField.validate instanceof Function) {
+            this.$.locker.lock();
+            validate = Promise.resolve(this.currentField.validate(this.filledFields))
+          } else {
+            validate = Promise.resolve(true);
+          }
+
+          validate.then(() => this.$.locker.unlock())
+
+          return validate.catch((e) => {
+            console.log('silent error', e);
+            this.$.locker.unlock();
+            return false;
+          });
         },
         next() {
           this.storeValue();
-          if (this.isFinished) return false;
-          this.setParams(this.currentFieldNumber + 1);
 
-          return true;
+          return this.validate().then((result) => {
+            if (!result) {
+              this.fire('validation-error', {
+                field: this.currentField,
+                name: this.currentFieldName
+              });
+              return false;
+            }
+            if (this.isFinished) return true;
+            this.setParams(this.currentFieldNumber + 1)
+          });
         },
         checkBorders() {
           let keys = _.keys(this.fieldsModel);
@@ -88,24 +107,34 @@
           this.set('currentFieldNumber', current);
           this.set('currentFieldName', keys[this.currentFieldNumber]);
           this.set('currentField', this.fieldsModel[this.currentFieldName]);
-          this.$.input.value = this.filledFields[this.currentFieldName] || '';
+          this.set('text', this.filledFields[this.currentFieldName] || '');
 
           this.checkBorders();
         },
         previous() {
           this.storeValue();
-          if (this.isFirst) return false;
-          this.setParams(this.currentFieldNumber - 1);
-          return true;
+
+          return this.validate().then((result) => {
+            if (!result) {
+              this.fire('validation-error', {
+                field: this.currentField,
+                name: this.currentFieldName
+              });
+              return false;
+            }
+            if (this.isFirst) return true;
+            this.setParams(this.currentFieldNumber - 1);
+            return true;
+          });
         },
         storeValue() {
-          this.value = this.$.input.value;
-          if (this.currentFieldName && this.value) {
-            this.set('filledFields.' + this.currentFieldName, this.value)
+          if (this.currentFieldName && this.text) {
+            this.set('filledFields.' + this.currentFieldName, this.text)
           }
         },
-        reset() {
-          this.filledFields = {};
+        reset(fields) {
+          this.filledFields = fields || Object.create(null);
+          this.$.locker.unlock();
           this.setParams(0);
         }
       });
