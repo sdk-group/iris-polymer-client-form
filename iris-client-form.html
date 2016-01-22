@@ -11,6 +11,10 @@
       :host {
         display: block;
       }
+      
+      paper-input::shadow input {
+        text-transform: capitalize;
+      }
     </style>
 
     <paper-input label$="[[currentField.description]]" value="{{text}}"></paper-input>
