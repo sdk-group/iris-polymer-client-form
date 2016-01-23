@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iris-polymer-importer/iris-importer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/iris-polymer-screen-lock/iris-screen-lock.html">
@@ -11,13 +12,9 @@
       :host {
         display: block;
       }
-      
-      paper-input::shadow input {
-        text-transform: capitalize;
-      }
     </style>
 
-    <paper-input label$="[[currentField.description]]" value="{{text}}"></paper-input>
+    <paper-textarea label$="[[currentField.description]]" value="{{text}}"></paper-textarea>
     <iris-screen-lock id="locker"></iris-screen-lock>
   </template>
 
