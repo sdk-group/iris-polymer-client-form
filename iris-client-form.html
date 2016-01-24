@@ -14,7 +14,7 @@
       }
     </style>
 
-    <paper-textarea label$="[[currentField.description]]" value="{{text}}"></paper-textarea>
+    <paper-input label$="[[currentField.description]]" value="[[applyMask(text)]]"></paper-input>
     <iris-screen-lock id="locker"></iris-screen-lock>
   </template>
 
@@ -98,6 +98,21 @@
             this.setParams(this.currentFieldNumber + 1)
           });
         },
+        applyMask(text) {
+          if (!this.fieldsModel) return '';
+          let mask = this.fieldsModel[this.currentFieldName].mask;
+
+
+          if (!mask) return text;
+          let placeholder_counter = 0;
+          return _.map(mask.split(''), (symbol) => {
+            if (symbol != '*') return symbol;
+            let ch = text.charAt(placeholder_counter) || ' ';
+            placeholder_counter += 1;
+            return ch;
+          }).join('');
+
+        },
         checkBorders() {
           let keys = _.keys(this.fieldsModel);
           this.set('isFinished', this.currentFieldNumber === keys.length - 1);
@@ -108,7 +123,8 @@
           this.set('currentFieldNumber', current);
           this.set('currentFieldName', keys[this.currentFieldNumber]);
           this.set('currentField', this.fieldsModel[this.currentFieldName]);
-          this.set('text', this.filledFields[this.currentFieldName] || '');
+          let text = this.filledFields[this.currentFieldName] || this.fieldsModel[this.currentFieldName].default || '';
+          this.set('text', text);
 
           this.checkBorders();
         },
@@ -130,8 +146,17 @@
         },
         storeValue() {
           if (this.currentFieldName && this.text) {
-            this.set('filledFields.' + this.currentFieldName, this.text)
+            let real = this.visibleChars(this.text);
+            this.set('filledFields.' + this.currentFieldName, real)
           }
+        },
+        visibleChars(text) {
+          let mask = this.fieldsModel[this.currentFieldName].mask;
+
+          if (!mask) return text;
+          let mask_length = (mask.match(/\*/g) || []).length;
+
+          return text.slice(0, mask_length);
         },
         reset(fields) {
           this.filledFields = fields || Object.create(null);
