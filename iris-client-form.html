@@ -59,7 +59,15 @@
             type: Boolean,
             notify: true,
             value: true
+          },
+          maxLength: {
+            type: Number,
+            notify: true,
+            computed: 'computeMaxLength(currentField)'
           }
+        },
+        computeMaxLength(currentField) {
+          return currentField.mask ? (currentField.mask.match(/\*/g) || []).length : false;
         },
         _fieldsModelChanged() {
           this.reset();
@@ -155,7 +163,6 @@
 
           if (!mask) return text;
           let mask_length = (mask.match(/\*/g) || []).length;
-
           return text.slice(0, mask_length);
         },
         reset(fields) {
