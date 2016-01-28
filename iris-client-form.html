@@ -75,10 +75,10 @@
         validate() {
 
           let validate;
-
-          if (this.currentField.validate instanceof Function) {
+          if (_.isArray(this.currentField.validate)) {
             this.$.locker.lock();
-            validate = Promise.resolve(this.currentField.validate(this.filledFields))
+            let validators = this.currentField.validate;
+            validate = Promise.all(_.map(validators, validator => Promise.resolve(validator(this.filledFields))))
           } else {
             validate = Promise.resolve(true);
           }
@@ -95,7 +95,7 @@
           this.storeValue();
 
           return this.validate().then((result) => {
-            if (!result) {
+            if (~_.indexOf(result, false)) {
               this.fire('validation-error', {
                 field: this.currentField,
                 name: this.currentFieldName
@@ -140,7 +140,7 @@
           this.storeValue();
 
           return this.validate().then((result) => {
-            if (!result) {
+            if (~_.indexOf(result, false)) {
               this.fire('validation-error', {
                 field: this.currentField,
                 name: this.currentFieldName
@@ -155,6 +155,7 @@
         storeValue() {
           if (this.currentFieldName && this.text) {
             let real = this.visibleChars(this.text);
+
             this.set('filledFields.' + this.currentFieldName, real)
           }
         },
