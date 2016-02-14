@@ -131,7 +131,10 @@
           this.set('currentFieldNumber', current);
           this.set('currentFieldName', keys[this.currentFieldNumber]);
           this.set('currentField', this.fieldsModel[this.currentFieldName]);
-          let text = this.filledFields[this.currentFieldName] || this.fieldsModel[this.currentFieldName].default || '';
+
+          let key = this.currentField.key || this.currentFieldName;
+
+          let text = this.filledFields[key] || this.fieldsModel[this.currentFieldName].default || '';
           this.set('text', text);
 
           this.checkBorders();
@@ -155,8 +158,9 @@
         storeValue() {
           if (this.currentFieldName && this.text) {
             let real = this.visibleChars(this.text);
+            let key = this.currentField.key || this.currentFieldName;
 
-            this.set('filledFields.' + this.currentFieldName, real)
+            this.set('filledFields.' + key, real)
           }
         },
         visibleChars(text) {
