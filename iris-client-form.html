@@ -156,12 +156,21 @@
           });
         },
         storeValue() {
-          if (this.currentFieldName && this.text) {
+          if (!this.currentFieldName || !this.text) return;
+
+          if (_.isString(this.text)) {
             let real = this.visibleChars(this.text);
             let key = this.currentField.key || this.currentFieldName;
 
-            this.set('filledFields.' + key, real)
+            this.set('filledFields.' + key, real);
+            return;
           }
+
+          if (_.isObject(this.text)) {
+            _.forEach(this.text, (field, name) => this.set('filledFields.' + name, field));
+            return;
+          }
+
         },
         visibleChars(text) {
           let mask = this.fieldsModel[this.currentFieldName].mask;
