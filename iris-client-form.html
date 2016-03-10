@@ -48,7 +48,8 @@
           },
           currentField: {
             type: Object,
-            notify: true
+            notify: true,
+            observer: 'computeLength'
           },
           isFinished: {
             type: Boolean,
@@ -62,12 +63,28 @@
           },
           maxLength: {
             type: Number,
-            notify: true,
-            computed: 'computeMaxLength(currentField)'
+            notify: true
+          },
+          minLength: {
+            type: Number,
+            notify: true
           }
         },
-        computeMaxLength(currentField) {
-          return currentField.mask ? (currentField.mask.match(/\*/g) || []).length : false;
+        computeLength(currentField) {
+          this.set('minLength', 1);
+          this.set('maxLength', false);
+
+          if (currentField.mask) {
+            let len = (currentField.mask.match(/\*/g) || []).length
+            this.set('maxLength', len);
+            this.set('minLength', len);
+            return;
+          }
+
+          if (currentField.length) {
+            this.set('maxLength', len);
+            return;
+          };
         },
         _fieldsModelChanged() {
           this.reset();
