@@ -13,8 +13,7 @@
         display: block;
       }
     </style>
-
-    <paper-input label$="[[currentField.description]]" value="[[applyMask(text)]]"></paper-input>
+    <iris-fake-input text="[[applyMask(text)]]" label="[[currentField.description]]"> </iris-fake-input>
     <iris-screen-lock id="locker"></iris-screen-lock>
   </template>
 
