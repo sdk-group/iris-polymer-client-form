@@ -13,7 +13,7 @@
         display: block;
       }
     </style>
-    <iris-fake-input text="[[applyMask(text)]]" label="[[currentField.description]]"> </iris-fake-input>
+    <iris-fake-input text="[[applyMask(text)]]" label="[[currentField.description]]" hidden="[[!native_display]]"> </iris-fake-input>
     <iris-screen-lock id="locker"></iris-screen-lock>
   </template>
 
@@ -147,6 +147,7 @@
           this.set('currentFieldNumber', current);
           this.set('currentFieldName', keys[this.currentFieldNumber]);
           this.set('currentField', this.fieldsModel[this.currentFieldName]);
+          this.set('native_display', this.currentField.type === 'input');
 
           let key = this.currentField.key || this.currentFieldName;
 
