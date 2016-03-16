@@ -73,6 +73,8 @@
           this.set('minLength', 1);
           this.set('maxLength', false);
 
+          if (_.isUndefined(currentField)) return;
+
           if (currentField.mask) {
             let len = (currentField.mask.match(/\*/g) || []).length
             this.set('maxLength', len);
@@ -85,7 +87,9 @@
             return;
           };
         },
-        _fieldsModelChanged() {
+        _fieldsModelChanged(fieldsModel) {
+          if (_.isEmpty(fieldsModel)) return;
+
           this.reset();
         },
         validate() {
@@ -175,11 +179,12 @@
         storeValue() {
           if (!this.currentFieldName || !this.text) return;
 
-          if (_.isString(this.text)) {
+          if (_.isString(this.text) || _.isNumber(this.text)) {
             let real = this.visibleChars(this.text);
             let key = this.currentField.key || this.currentFieldName;
 
             this.set('filledFields.' + key, real);
+
             return;
           }
 
