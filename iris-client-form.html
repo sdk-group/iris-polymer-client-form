@@ -12,14 +12,15 @@
       :host {
         display: block;
       }
+
     </style>
-    <iris-fake-input text="[[applyMask(text)]]" label="[[currentField.description]]" hidden="[[!native_display]]"> </iris-fake-input>
+    <iris-fake-input text="[[applyMask(text)]]" label="[[currentField.description]]" hidden="[[!native_display]]"></iris-fake-input>
     <iris-screen-lock id="locker"></iris-screen-lock>
   </template>
 
   <script>
     'use strict';
-    (function() {
+    (function () {
       Polymer({
         is: 'iris-client-form',
         properties: {
@@ -67,13 +68,18 @@
           minLength: {
             type: Number,
             notify: true
+          },
+          selectedService: {
+            type: Number,
+            notify: true
           }
         },
         computeLength(currentField) {
           this.set('minLength', 1);
           this.set('maxLength', false);
 
-          if (_.isUndefined(currentField)) return;
+          if (_.isUndefined(currentField))
+            return;
 
           if (currentField.mask) {
             let len = (currentField.mask.match(/\*/g) || []).length
@@ -88,7 +94,8 @@
           };
         },
         _fieldsModelChanged(fieldsModel) {
-          if (_.isEmpty(fieldsModel)) return;
+          if (_.isEmpty(fieldsModel))
+            return;
 
           this.reset();
         },
@@ -115,26 +122,30 @@
           this.storeValue();
 
           return this.validate().then((result) => {
-            if (~_.indexOf(result, false)) {
+            if (~ _.indexOf(result, false)) {
               this.fire('validation-error', {
                 field: this.currentField,
                 name: this.currentFieldName
               });
               return false;
             }
-            if (this.isFinished) return true;
+            if (this.isFinished)
+              return true;
+
             this.setParams(this.currentFieldNumber + 1)
           });
         },
         applyMask(text) {
-          if (!this.fieldsModel) return '';
+          if (!this.fieldsModel)
+            return '';
           let mask = this.fieldsModel[this.currentFieldName].mask;
 
-
-          if (!mask) return text;
+          if (!mask)
+            return text;
           let placeholder_counter = 0;
           return _.map(mask.split(''), (symbol) => {
-            if (symbol != '*') return symbol;
+            if (symbol != '*')
+              return symbol;
             let ch = text.charAt(placeholder_counter) || ' ';
             placeholder_counter += 1;
             return ch;
@@ -154,8 +165,12 @@
           this.set('native_display', this.currentField.type === 'input');
 
           let key = this.currentField.key || this.currentFieldName;
-
           let text = this.filledFields[key] || this.fieldsModel[this.currentFieldName].default || '';
+
+          if (_.isArray(text) && _.isNumber(this.currentField.selected_service)) {
+            text = text[this.currentField.selected_service];
+          }
+
           this.set('text', text);
 
           this.checkBorders();
@@ -164,24 +179,29 @@
           this.storeValue();
 
           return this.validate().then((result) => {
-            if (~_.indexOf(result, false)) {
+            if (~ _.indexOf(result, false)) {
               this.fire('validation-error', {
                 field: this.currentField,
                 name: this.currentFieldName
               });
               return false;
             }
-            if (this.isFirst) return true;
+            if (this.isFirst)
+              return true;
             this.setParams(this.currentFieldNumber - 1);
             return true;
           });
         },
         storeValue() {
-          if (!this.currentFieldName || !this.text) return;
+          if (!this.currentFieldName || !this.text)
+            return;
 
           if (_.isString(this.text) || _.isNumber(this.text)) {
             let real = this.visibleChars(this.text);
             let key = this.currentField.key || this.currentFieldName;
+
+            if (_.isNumber(this.currentField.selected_service)) 
+              key = key + '.' + this.currentField.selected_service;
 
             this.set('filledFields.' + key, real);
 
@@ -197,7 +217,8 @@
         visibleChars(text) {
           let mask = this.fieldsModel[this.currentFieldName].mask;
 
-          if (!mask) return text;
+          if (!mask)
+            return text;
           let mask_length = (mask.match(/\*/g) || []).length;
           return text.slice(0, mask_length);
         },
