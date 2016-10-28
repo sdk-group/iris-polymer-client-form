@@ -65,6 +65,10 @@
             type: Number,
             notify: true
           },
+          maxValue: {
+            type: Number,
+            notify: true
+          },
           minLength: {
             type: Number,
             notify: true
@@ -80,6 +84,10 @@
 
           if (_.isUndefined(currentField))
             return;
+
+          if (currentField["max-value"]) {
+            this.set('maxValue', currentField["max-value"]);
+          }
 
           if (currentField.mask) {
             let len = (currentField.mask.match(/\*/g) || []).length
@@ -121,19 +129,25 @@
         next() {
           this.storeValue();
 
+          if (this.isFinished)
+            return Promise.resolve(true);
+
           return this.validate().then((result) => {
-            if (~ _.indexOf(result, false)) {
+            if (~ _.castArray(result).indexOf(false)) {
               this.fire('validation-error', {
                 field: this.currentField,
-                name: this.currentFieldName
+                name: this.currentFieldName.indexOf('service_count') == 0
+                  ? 'service_count'
+                  : this.currentFieldName
               });
               return false;
             }
-            if (this.isFinished)
-              return true;
 
             this.setParams(this.currentFieldNumber + 1)
           });
+        },
+        remove(service) {
+          console.log('REMOVE', service, this.fieldsModel);
         },
         applyMask(text) {
           if (!this.fieldsModel)
@@ -177,12 +191,19 @@
         },
         previous() {
           this.storeValue();
+          if (this.isFirst)
+            return Promise.resolve(true);
+          this.setParams(this.currentFieldNumber - 1);
+          return Promise.resolve(true);
 
+          /*Dirty hack*/
           return this.validate().then((result) => {
             if (~ _.indexOf(result, false)) {
               this.fire('validation-error', {
                 field: this.currentField,
-                name: this.currentFieldName
+                name: this.currentFieldName.indexOf('service_count') == 0
+                  ? 'service_count'
+                  : this.currentFieldName
               });
               return false;
             }
@@ -200,7 +221,7 @@
             let real = this.visibleChars(this.text);
             let key = this.currentField.key || this.currentFieldName;
 
-            if (_.isNumber(this.currentField.selected_service)) 
+            if (_.isNumber(this.currentField.selected_service))
               key = key + '.' + this.currentField.selected_service;
 
             this.set('filledFields.' + key, real);
